@@ -1,0 +1,13 @@
+{
+    "cmake.buildDirectory": "/home/sehy/natID.RAMDisk/build/simplexLP",
+    "cmake.debugConfig": {
+        "setupCommands": [
+            {
+                "text": "source /home/sehy/natID.SDK/DevEnv/VSCodeDebugger/debugHelper_unix.py"
+            },
+            {
+                "text": "-enable-pretty-printing"
+            }
+        ]
+    }
+}

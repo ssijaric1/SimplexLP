@@ -1,0 +1,26 @@
+<?xml version='1.0'?>
+<SetupCollector xmlns:win="windows" xmlns:mac="macOS" xmlns:lin="linux" executableName="simplexLP">
+	<Folders dev="~natID/natID.Examples/mine/SimplexLP"
+			 executable="$RAMDisk/Out/simplexLPSol/Release"
+			 out="$RAMDisk/Setup/simplexLP"/>
+	<Packages debug="false">
+		<Package name="natGUIALL"/>
+		<Package name="Matrix"/>
+		<Package name="GTK4" exclude="macOS,linux"/>
+	</Packages>
+	<ResData>
+		<Res type="folder" dev="$MyBin/GTK/release/share/glib-2.0/schemas" dep="schemas" exclude="macOS,linux"/>
+	</ResData>
+	<MutableResource/>
+	<Setup licenseFileName="~natID.SDK/DevEnv/License.txt"
+			categories="Education"
+			win:programGroup="SimplexLP"
+			win:width="440"
+			win:headerBackColor="#12203A"
+			win:headerTxtColor="#40D6C8"
+			win:licenseTxtColor="#846060"
+			win:useMakeCabinet="true"
+			win:minBuildNumber="17763"
+			lin:depends="$DepGTKv4"
+			lin:icon="$HOME/natID/natID.Examples/mine/SimplexLP/res/appIcon/simplexLP"/>
+</SetupCollector>

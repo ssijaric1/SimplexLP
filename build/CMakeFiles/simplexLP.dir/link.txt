@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -fuse-ld=gold -Wl,--no-undefined CMakeFiles/simplexLP.dir/src/main.cpp.o -o /home/sehy/natID.RAMDisk/Out/simplexLPSol/Release/simplexLP   -L/home/sehy/natID.SDK/bin/lib  -Wl,-rpath,/home/sehy/natID.SDK/bin/lib /home/sehy/natID.SDK/bin/lib/mainUtils.so /home/sehy/natID.SDK/bin/lib/natGUI.so /home/sehy/natID.SDK/bin/lib/Matrix.so 

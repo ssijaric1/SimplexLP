@@ -1,0 +1,24 @@
+<?xml version='1.0'?>
+<DevRes version="2024.07.16"
+        regionals="Common/Regionals"
+        displayName="SimplexLP"
+        maintainer="Sehzada Sijaric"
+        email="YOUR_EMAIL@etf.unsa.ba"
+        homePage="https://github.com/YOUR_GITHUB_USER/SimplexLP"
+        majorVersion="1"
+        minorVersion="0"
+        versionDate="2026-06-12"
+        comment="Revised simplex method for linear programming with 2D/3D visualization and interior-point comparison">
+	<Langs>
+		<Lang id="EN" name="English"/>
+		<Lang id="BA" name="Bosanski"/>
+	</Langs>
+	<ArtWork>
+		<Config path="Common/ResConfigs/natGUI.xml"/>
+		<Config path=":main.xml"/>
+	</ArtWork>
+	<Translation>
+		<Config path="Common/ResConfigs/tr/%s/natGUI.xml"/>
+		<Config path=":tr/%s/main.xml"/>
+	</Translation>
+</DevRes>

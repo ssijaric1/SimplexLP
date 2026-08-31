@@ -1,0 +1,81 @@
+<?xml version='1.0'?>
+<DevRes>
+    <Translations>
+        <Res id="appTitle" tr="SimplexLP - Revised Simplex in natID (Š. Sijarić, 19964)"/>
+
+        <!-- menus -->
+        <Res id="App" tr="App"/>
+        <Res id="Run" tr="Run"/>
+        <Res id="Help" tr="Help"/>
+        <Res id="Quit" tr="Quit"/>
+        <Res id="settings" tr="Settings"/>
+        <Res id="settingsTT" tr="Settings (language, toolbar)"/>
+        <Res id="solve" tr="Solve"/>
+        <Res id="solveTT" tr="Build and solve the current model"/>
+        <Res id="step" tr="Step"/>
+        <Res id="animate" tr="Animate"/>
+        <Res id="reset" tr="Reset"/>
+        <Res id="about" tr="About"/>
+        <Res id="aboutTitle" tr="SimplexLP - Project #13"/>
+        <Res id="aboutText" tr="Implementation and geometric visualization of the revised Simplex algorithm with an interior-point comparison. Built on the natID framework (sparse LU/LLT solvers, dense matrices, natGUI). Student: Šehzada Sijarić, index 19964."/>
+
+        <!-- tabs -->
+        <Res id="tab2D" tr="2D visualization"/>
+        <Res id="tab3D" tr="3D visualization"/>
+        <Res id="tabBench" tr="Benchmark"/>
+
+        <!-- model controls -->
+        <Res id="lblPreset" tr="Preset example:"/>
+        <Res id="lblObjective" tr="Objective:"/>
+        <Res id="dirMax" tr="maximize"/>
+        <Res id="dirMin" tr="minimize"/>
+        <Res id="lblConstraints" tr="Constraints (one per line):"/>
+        <Res id="cbShowIPM" tr="Show interior-point path"/>
+        <Res id="btnSolve" tr="Solve"/>
+        <Res id="btnStep" tr="Step"/>
+        <Res id="btnPlay" tr="Play"/>
+        <Res id="btnPause" tr="Pause"/>
+        <Res id="btnReset" tr="Reset"/>
+        <Res id="lblSpeed" tr="Speed:"/>
+
+        <!-- canvas texts -->
+        <Res id="hint2D" tr="Enter a 2-variable model on the left and press Solve. Drag to pan, pinch/scroll to zoom."/>
+        <Res id="hint3D" tr="Enter a 3-variable model on the left and press Solve. Drag to rotate, pinch/scroll to zoom."/>
+        <Res id="emptyRegion" tr="Feasible region is empty"/>
+        <Res id="lblIPMPath" tr="interior-point path"/>
+        <Res id="errParse" tr="Model error:"/>
+        <Res id="logPathEnd" tr="End of pivot path."/>
+
+        <!-- benchmark -->
+        <Res id="lblMStart" tr="Rows m (start):"/>
+        <Res id="lblMEnd" tr="Rows m (end):"/>
+        <Res id="lblSteps" tr="Instances:"/>
+        <Res id="lblRatio" tr="Columns per row (n/m):"/>
+        <Res id="lblNnz" tr="Nonzeros per column:"/>
+        <Res id="lblSeed" tr="Random seed:"/>
+        <Res id="cbRunSimplex" tr="Run revised simplex"/>
+        <Res id="cbRunIPM" tr="Run interior-point"/>
+        <Res id="cbExportMPS" tr="Export MPS files (for CLP)"/>
+        <Res id="btnRun" tr="Run benchmark"/>
+        <Res id="logBenchStart" tr="Running benchmark..."/>
+        <Res id="logPickSolver" tr="Select at least one solver."/>
+        <Res id="chartTimeTitle" tr="Solve time vs problem size"/>
+        <Res id="chartItersTitle" tr="Iterations vs problem size"/>
+        <Res id="chartItersY" tr="iterations"/>
+        <Res id="chartNoData" tr="no data yet - run the benchmark"/>
+        <Res id="seriesSimplex" tr="revised simplex"/>
+        <Res id="seriesIPM" tr="interior point"/>
+
+        <!-- settings dialog -->
+        <Res id="dlgSettings" tr="Settings"/>
+        <Res id="Ok" tr="Ok"/>
+        <Res id="Cancel" tr="Cancel"/>
+        <Res id="lblLang" tr="Current application language:"/>
+        <Res id="lblLang2" tr="Language after restart:"/>
+        <Res id="chbTBIcsAndLbls" tr="Show labels below toolbar icons"/>
+        <Res id="RestartRequired" tr="Restart the application"/>
+        <Res id="RestartRequiredInfo" tr="The language change takes effect after a restart"/>
+        <Res id="Restart" tr="Restart"/>
+        <Res id="DoNoRestart" tr="Don't restart"/>
+    </Translations>
+</DevRes>

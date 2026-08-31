@@ -1,0 +1,358 @@
+name: Build All Installers
+
+# Adapted for SimplexLP (Project #13, S. Sijaric 19964) from the
+# Game of The Amazons workflow.
+#
+# Project-specific values used throughout:
+#   executable / target : simplexLP
+#   solution name       : simplexLPSol   -> $RAMDisk/Out/simplexLPSol/Release
+#   collector config    : installer/SimplexLP.xml
+#   config's dev=       : ~natID/natID.Examples/mine/SimplexLP
+#                         (so CI recreates that exact path via a symlink)
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      publish_release:
+        description: "Publish to GitHub Releases (yes/no)"
+        required: false
+        default: "no"
+      release_tag:
+        description: "Tag name for the Release (required if publishing, e.g. v1.0.0)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+# ===========================================================================
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install natID SDK
+        shell: cmd
+        run: |
+          git clone --depth 1 https://github.com/idzafic/natID.git %USERPROFILE%\natID
+          mklink /J %USERPROFILE%\natID.SDK %USERPROFILE%\natID\natID.SDK
+          mklink /J %USERPROFILE%\natID.Utils %USERPROFILE%\natID\natID.Utils
+          curl -L -o %TEMP%\sdk-bin.7z https://github.com/idzafic/natID/releases/download/v4.2.1/bin_win_x64_20260710.7z
+          tar -xf %TEMP%\sdk-bin.7z -C %USERPROFILE%\natID.SDK\bin 2>nul || echo "trying 7z"
+          dir %USERPROFILE%\natID.SDK\bin
+
+      - name: Extract SDK libs (7-Zip)
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "$env:USERPROFILE\natID.SDK\bin\mainUtils.dll")) {
+            choco install 7zip -y --no-progress
+            & "C:\Program Files\7-Zip\7z.exe" x -y -o"$env:USERPROFILE\natID.SDK\bin" "$env:TEMP\sdk-bin.7z"
+          }
+          Get-ChildItem "$env:USERPROFILE\natID.SDK\bin" -Filter *.dll | Select-Object -First 5 Name
+
+      - name: Place project where the collector config expects it
+        shell: cmd
+        run: |
+          if not exist %USERPROFILE%\natID\natID.Examples\mine mkdir %USERPROFILE%\natID\natID.Examples\mine
+          mklink /J %USERPROFILE%\natID\natID.Examples\mine\SimplexLP %GITHUB_WORKSPACE%
+
+      - name: Build (Release)
+        shell: cmd
+        run: |
+          set HOME=%USERPROFILE%
+          if not exist %USERPROFILE%\natID.RAMDisk mkdir %USERPROFILE%\natID.RAMDisk
+          if not exist R:\ subst R: %USERPROFILE%\natID.RAMDisk
+          cmake -S . -B %USERPROFILE%\natID.RAMDisk\build
+          cmake --build %USERPROFILE%\natID.RAMDisk\build --config Release
+          dir R:\Out\simplexLPSol\Release
+
+      - name: Collect installer (SetupCollector)
+        shell: pwsh
+        run: |
+          $env:HOME = $env:USERPROFILE
+          Copy-Item "$env:USERPROFILE\natID.SDK\DevEnv\SetupCollectors" "$env:USERPROFILE\Setups" -Recurse -Force
+          Copy-Item "installer/SimplexLP.xml" "$env:USERPROFILE\Setups\"
+
+          # SetupCollector reads Packages/*.xml from the SDK's own SetupCollectors
+          # folder, so the patched GTK4.xml must overwrite the SDK copy (and the
+          # working copy, harmlessly, in case a newer build reads that one).
+          Copy-Item "installer/GTK4.xml" "$env:USERPROFILE\natID.SDK\DevEnv\SetupCollectors\Packages\GTK4.xml" -Force
+          Copy-Item "installer/GTK4.xml" "$env:USERPROFILE\Setups\Packages\GTK4.xml" -Force
+          Write-Host "--- GTK4.xml Group paths after overwrite: ---"
+          Select-String -Path "$env:USERPROFILE\natID.SDK\DevEnv\SetupCollectors\Packages\GTK4.xml" -Pattern 'path="' | ForEach-Object { $_.Line.Trim() }
+
+          & "$env:USERPROFILE\natID.Utils\windows\SetupCollector.exe" "$env:USERPROFILE\Setups\SimplexLP.xml"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cmd /c "dir /s /b R:\Setup"
+
+      - name: Stage installer output
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path installer-output | Out-Null
+          Get-ChildItem "R:\Setup" -File -Recurse -Include *.msi, "Install*.exe" |
+            Copy-Item -Destination installer-output
+          Get-ChildItem installer-output
+          if (-not (Get-ChildItem installer-output -Filter *.msi)) {
+            Write-Error "No .msi produced - SetupCollector likely failed (check log above)"
+            exit 1
+          }
+
+      - name: Zip installer pair
+        shell: pwsh
+        run: |
+          Compress-Archive -Path installer-output/* -DestinationPath SimplexLP-win.zip
+          Get-Item SimplexLP-win.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SimplexLP-win
+          path: SimplexLP-win.zip
+          if-no-files-found: error
+
+# ===========================================================================
+  macos-silicon:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install natID SDK
+        run: |
+          git clone --depth 1 https://github.com/idzafic/natID.git $HOME/natID
+          ln -s $HOME/natID/natID.SDK $HOME/natID.SDK
+          ln -s $HOME/natID/natID.Utils $HOME/natID.Utils
+          brew install sevenzip
+          curl -L -o /tmp/sdk-bin.7z \
+            https://github.com/idzafic/natID/releases/download/v4.2.1/bin_macOS_arm64_20260710.7z
+          7zz x -y -o$HOME/natID.SDK/bin /tmp/sdk-bin.7z
+          ls $HOME/natID.SDK/bin/lib/
+
+      - name: Place project where the collector config expects it
+        run: |
+          mkdir -p $HOME/natID/natID.Examples/mine
+          ln -s "$GITHUB_WORKSPACE" $HOME/natID/natID.Examples/mine/SimplexLP
+          ls -la $HOME/natID/natID.Examples/mine/SimplexLP/
+
+      - name: Build (Release)
+        run: |
+          cmake -S . -B $HOME/natID.RAMDisk/build -DCMAKE_BUILD_TYPE=Release
+          cmake --build $HOME/natID.RAMDisk/build -j
+          echo "--- build output ---"
+          find $HOME/natID.RAMDisk/Out -maxdepth 4 -name "simplexLP*" -print
+          test -x "$HOME/natID.RAMDisk/Out/simplexLPSol/Release/simplexLP.app/Contents/MacOS/simplexLP" \
+            || test -x "$HOME/natID.RAMDisk/Out/simplexLPSol/Release/simplexLP"
+
+      - name: Collect installer (SetupCollector)
+        run: |
+          sudo ln -s $HOME/natID.RAMDisk /Volumes/RAMDisk
+          cp -r $HOME/natID.SDK/DevEnv/SetupCollectors $HOME/Setups
+          cp "$GITHUB_WORKSPACE/installer/SimplexLP.xml" $HOME/Setups/
+          chmod +x $HOME/natID.Utils/macOS/arm64/SetupCollector
+          $HOME/natID.Utils/macOS/arm64/SetupCollector $HOME/Setups/SimplexLP.xml
+          find $HOME/natID.RAMDisk/Setup -maxdepth 4
+
+      - name: Stage installer output
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/installer-output"
+          cp -R $HOME/natID.RAMDisk/Setup/ALL_Bundles/* "$GITHUB_WORKSPACE/installer-output/" 2>/dev/null || \
+            cp -R $HOME/natID.RAMDisk/Setup/simplexLP/* "$GITHUB_WORKSPACE/installer-output/" 2>/dev/null || \
+            echo "WARNING: no installer output found"
+          ls -laR "$GITHUB_WORKSPACE/installer-output/"
+
+      - name: Create distributable zip (ditto preserves exec permissions)
+        run: |
+          cd "$GITHUB_WORKSPACE/installer-output"
+          APP=$(find . -maxdepth 2 -name "*.app" | head -1)
+          echo "bundling: $APP"
+          test -n "$APP" || { echo "no .app found"; exit 1; }
+          ditto -c -k --keepParent --sequesterRsrc "$APP" SimplexLP-macOS-Silicon.zip
+          ls -la SimplexLP-macOS-Silicon.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SimplexLP-macOS-Silicon
+          path: installer-output/SimplexLP-macOS-Silicon.zip
+          if-no-files-found: error
+
+# ===========================================================================
+  macos-intel:
+    runs-on: macos-15-intel
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install natID SDK
+        run: |
+          git clone --depth 1 https://github.com/idzafic/natID.git $HOME/natID
+          ln -s $HOME/natID/natID.SDK $HOME/natID.SDK
+          ln -s $HOME/natID/natID.Utils $HOME/natID.Utils
+          brew install sevenzip
+          curl -L -o /tmp/sdk-bin.7z \
+            https://github.com/idzafic/natID/releases/download/v4.2.1/bin_macOS_x64_20260710.7z
+          7zz x -y -o$HOME/natID.SDK/bin /tmp/sdk-bin.7z
+          ls $HOME/natID.SDK/bin/lib/
+
+      - name: Place project where the collector config expects it
+        run: |
+          mkdir -p $HOME/natID/natID.Examples/mine
+          ln -s "$GITHUB_WORKSPACE" $HOME/natID/natID.Examples/mine/SimplexLP
+
+      - name: Build (Release)
+        run: |
+          cmake -S . -B $HOME/natID.RAMDisk/build -DCMAKE_BUILD_TYPE=Release
+          cmake --build $HOME/natID.RAMDisk/build -j
+          find $HOME/natID.RAMDisk/Out -maxdepth 4 -name "simplexLP*" -print
+          test -x "$HOME/natID.RAMDisk/Out/simplexLPSol/Release/simplexLP.app/Contents/MacOS/simplexLP" \
+            || test -x "$HOME/natID.RAMDisk/Out/simplexLPSol/Release/simplexLP"
+
+      - name: Collect installer (SetupCollector)
+        run: |
+          sudo ln -s $HOME/natID.RAMDisk /Volumes/RAMDisk
+          cp -r $HOME/natID.SDK/DevEnv/SetupCollectors $HOME/Setups
+          cp "$GITHUB_WORKSPACE/installer/SimplexLP.xml" $HOME/Setups/
+          chmod +x $HOME/natID.Utils/macOS/x64/SetupCollector
+          $HOME/natID.Utils/macOS/x64/SetupCollector $HOME/Setups/SimplexLP.xml
+          find $HOME/natID.RAMDisk/Setup -maxdepth 4
+
+      - name: Stage installer output
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/installer-output"
+          cp -R $HOME/natID.RAMDisk/Setup/ALL_Bundles/* "$GITHUB_WORKSPACE/installer-output/" 2>/dev/null || \
+            cp -R $HOME/natID.RAMDisk/Setup/simplexLP/* "$GITHUB_WORKSPACE/installer-output/" 2>/dev/null || \
+            echo "WARNING: no installer output found"
+          ls -laR "$GITHUB_WORKSPACE/installer-output/"
+
+      - name: Create distributable zip (ditto preserves exec permissions)
+        run: |
+          cd "$GITHUB_WORKSPACE/installer-output"
+          APP=$(find . -maxdepth 2 -name "*.app" | head -1)
+          echo "bundling: $APP"
+          test -n "$APP" || { echo "no .app found"; exit 1; }
+          ditto -c -k --keepParent --sequesterRsrc "$APP" SimplexLP-macOS-Intel.zip
+          ls -la SimplexLP-macOS-Intel.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SimplexLP-macOS-Intel
+          path: installer-output/SimplexLP-macOS-Intel.zip
+          if-no-files-found: error
+
+# ===========================================================================
+  linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake git p7zip-full patchelf \
+            libgtk-4-dev libadwaita-1-dev
+
+      - name: Install natID SDK
+        run: |
+          git clone --depth 1 https://github.com/idzafic/natID.git $HOME/natID
+          ln -s $HOME/natID/natID.SDK $HOME/natID.SDK
+          ln -s $HOME/natID/natID.Utils $HOME/natID.Utils
+          curl -L -o /tmp/sdk-bin.7z \
+            https://github.com/idzafic/natID/releases/download/v4.2.1/bin_linux_x64_20260710.7z
+          7z x -y -o$HOME/natID.SDK/bin /tmp/sdk-bin.7z
+          ls $HOME/natID.SDK/bin/lib/
+
+      - name: Place project where the collector config expects it
+        run: |
+          mkdir -p $HOME/natID/natID.Examples/mine
+          ln -s "$GITHUB_WORKSPACE" $HOME/natID/natID.Examples/mine/SimplexLP
+
+      - name: Build (Release)
+        run: |
+          cmake -S . -B $HOME/natID.RAMDisk/build -DCMAKE_BUILD_TYPE=Release
+          cmake --build $HOME/natID.RAMDisk/build -j$(nproc)
+          test -x $HOME/natID.RAMDisk/Out/simplexLPSol/Release/simplexLP
+
+      - name: Collect installer (SetupCollector)
+        run: |
+          # EnvVariables.xml maps $RAMDisk to /media/RAMDisk on Linux.
+          # /media/RAMDisk must BE the symlink, not a dir containing it.
+          sudo rm -rf /media/RAMDisk
+          sudo ln -s $HOME/natID.RAMDisk /media/RAMDisk
+          ls -la /media/RAMDisk/Out/simplexLPSol/Release/
+          cp -r $HOME/natID.SDK/DevEnv/SetupCollectors $HOME/Setups
+          cp "$GITHUB_WORKSPACE/installer/SimplexLP.xml" $HOME/Setups/
+          chmod +x $HOME/natID.Utils/linux/SetupCollector
+          $HOME/natID.Utils/linux/SetupCollector $HOME/Setups/SimplexLP.xml
+          echo "--- Setup output tree ---"
+          find $HOME/natID.RAMDisk/Setup -maxdepth 4 2>/dev/null || echo "no Setup dir"
+
+      - name: Stage installer output
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/installer-output"
+          find $HOME/natID.RAMDisk/Setup -name "*.deb" -exec cp {} "$GITHUB_WORKSPACE/installer-output/" \; || true
+          ls -la "$GITHUB_WORKSPACE/installer-output/"
+          test -n "$(ls -A "$GITHUB_WORKSPACE/installer-output/")" || { echo "no .deb produced"; exit 1; }
+
+      - name: Zip deb package
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          zip -j SimplexLP-linux.zip installer-output/*
+          ls -la SimplexLP-linux.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SimplexLP-linux
+          path: SimplexLP-linux.zip
+          if-no-files-found: error
+
+# ===========================================================================
+  release:
+    needs: [windows, macos-silicon, macos-intel, linux]
+    runs-on: ubuntu-latest
+    if: >-
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_release == 'yes')
+    steps:
+      - name: Determine release tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "name=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+          else
+            echo "name=${{ github.event.inputs.release_tag }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List artifacts
+        run: find artifacts -type f | head -50
+
+      - name: Create GitHub Release with all installers
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.name }}
+          name: SimplexLP ${{ steps.tag.outputs.name }}
+          body: |
+            **SimplexLP** - revised simplex method for linear programming with
+            2D/3D visualization and an interior-point comparison (Project #13).
+
+            ## Downloads
+
+            | Platform | File |
+            |----------|------|
+            | Windows | `SimplexLP-win.zip` (installer .exe + .msi - keep both together) |
+            | macOS Apple Silicon | `SimplexLP-macOS-Silicon.zip` (M1/M2/M3/M4) |
+            | macOS Intel | `SimplexLP-macOS-Intel.zip` (2016-2020 Intel Macs) |
+            | Linux (Ubuntu 24.04+) | `SimplexLP-linux.zip` (contains .deb) |
+
+            ### Install notes
+            - **Windows**: unzip, run the .exe (or the .msi directly)
+            - **macOS**: unzip, drag to Applications, first launch: right-click -> Open
+            - **Linux**: unzip, `sudo apt install ./simplexLP.deb`
+          files: |
+            artifacts/SimplexLP-win/*
+            artifacts/SimplexLP-macOS-Silicon/*
+            artifacts/SimplexLP-macOS-Intel/*
+            artifacts/SimplexLP-linux/*

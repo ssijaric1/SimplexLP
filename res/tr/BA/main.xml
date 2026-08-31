@@ -1,0 +1,81 @@
+<?xml version='1.0'?>
+<DevRes>
+    <Translations>
+        <Res id="appTitle" tr="SimplexLP - Revidirani Simpleks u natID-u (Š. Sijarić, 19964)"/>
+
+        <!-- meniji -->
+        <Res id="App" tr="Aplikacija"/>
+        <Res id="Run" tr="Pokreni"/>
+        <Res id="Help" tr="Pomoć"/>
+        <Res id="Quit" tr="Izlaz"/>
+        <Res id="settings" tr="Postavke"/>
+        <Res id="settingsTT" tr="Postavke (jezik, alatna traka)"/>
+        <Res id="solve" tr="Riješi"/>
+        <Res id="solveTT" tr="Formiraj i riješi trenutni model"/>
+        <Res id="step" tr="Korak"/>
+        <Res id="animate" tr="Animiraj"/>
+        <Res id="reset" tr="Poništi"/>
+        <Res id="about" tr="O programu"/>
+        <Res id="aboutTitle" tr="SimplexLP - Projekat br. 13"/>
+        <Res id="aboutText" tr="Implementacija i geometrijska vizualizacija revidiranog Simpleks algoritma uz poređenje sa metodom unutrašnje tačke. Razvijeno u natID okviru (rijetki LU/LLT solveri, guste matrice, natGUI). Student: Šehzada Sijarić, indeks 19964."/>
+
+        <!-- kartice -->
+        <Res id="tab2D" tr="2D vizualizacija"/>
+        <Res id="tab3D" tr="3D vizualizacija"/>
+        <Res id="tabBench" tr="Mjerenje performansi"/>
+
+        <!-- kontrole modela -->
+        <Res id="lblPreset" tr="Gotovi primjer:"/>
+        <Res id="lblObjective" tr="Funkcija cilja:"/>
+        <Res id="dirMax" tr="maksimiziraj"/>
+        <Res id="dirMin" tr="minimiziraj"/>
+        <Res id="lblConstraints" tr="Ograničenja (jedno po redu):"/>
+        <Res id="cbShowIPM" tr="Prikaži putanju unutrašnje tačke"/>
+        <Res id="btnSolve" tr="Riješi"/>
+        <Res id="btnStep" tr="Korak"/>
+        <Res id="btnPlay" tr="Animiraj"/>
+        <Res id="btnPause" tr="Pauza"/>
+        <Res id="btnReset" tr="Poništi"/>
+        <Res id="lblSpeed" tr="Brzina:"/>
+
+        <!-- tekstovi na platnu -->
+        <Res id="hint2D" tr="Unesite model sa 2 varijable lijevo i pritisnite Riješi. Prevlačenjem pomjerate prikaz, skrolom zumirate."/>
+        <Res id="hint3D" tr="Unesite model sa 3 varijable lijevo i pritisnite Riješi. Prevlačenjem rotirate, skrolom zumirate."/>
+        <Res id="emptyRegion" tr="Dopustivo područje je prazno"/>
+        <Res id="lblIPMPath" tr="putanja unutrašnje tačke"/>
+        <Res id="errParse" tr="Greška u modelu:"/>
+        <Res id="logPathEnd" tr="Kraj putanje pivota."/>
+
+        <!-- mjerenje -->
+        <Res id="lblMStart" tr="Redovi m (početak):"/>
+        <Res id="lblMEnd" tr="Redovi m (kraj):"/>
+        <Res id="lblSteps" tr="Broj instanci:"/>
+        <Res id="lblRatio" tr="Kolona po redu (n/m):"/>
+        <Res id="lblNnz" tr="Ne-nula po koloni:"/>
+        <Res id="lblSeed" tr="Slučajno sjeme:"/>
+        <Res id="cbRunSimplex" tr="Pokreni revidirani simpleks"/>
+        <Res id="cbRunIPM" tr="Pokreni metodu unutrašnje tačke"/>
+        <Res id="cbExportMPS" tr="Izvezi MPS datoteke (za CLP)"/>
+        <Res id="btnRun" tr="Pokreni mjerenje"/>
+        <Res id="logBenchStart" tr="Mjerenje u toku..."/>
+        <Res id="logPickSolver" tr="Odaberite barem jedan algoritam."/>
+        <Res id="chartTimeTitle" tr="Vrijeme rješavanja u odnosu na veličinu problema"/>
+        <Res id="chartItersTitle" tr="Broj iteracija u odnosu na veličinu problema"/>
+        <Res id="chartItersY" tr="iteracije"/>
+        <Res id="chartNoData" tr="nema podataka - pokrenite mjerenje"/>
+        <Res id="seriesSimplex" tr="revidirani simpleks"/>
+        <Res id="seriesIPM" tr="unutrašnja tačka"/>
+
+        <!-- dijalog postavki -->
+        <Res id="dlgSettings" tr="Postavke"/>
+        <Res id="Ok" tr="U redu"/>
+        <Res id="Cancel" tr="Odustani"/>
+        <Res id="lblLang" tr="Trenutni jezik aplikacije:"/>
+        <Res id="lblLang2" tr="Jezik nakon ponovnog pokretanja:"/>
+        <Res id="chbTBIcsAndLbls" tr="Prikaži natpise ispod ikona na alatnoj traci"/>
+        <Res id="RestartRequired" tr="Ponovno pokretanje aplikacije"/>
+        <Res id="RestartRequiredInfo" tr="Promjena jezika stupa na snagu nakon ponovnog pokretanja"/>
+        <Res id="Restart" tr="Ponovo pokreni"/>
+        <Res id="DoNoRestart" tr="Ne pokreći ponovo"/>
+    </Translations>
+</DevRes>
