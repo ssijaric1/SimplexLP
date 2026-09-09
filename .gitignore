@@ -1,0 +1,6 @@
+build/
+installer-output/
+.vscode/
+.vs/
+*.o
+*.user
